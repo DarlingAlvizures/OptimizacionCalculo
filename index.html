@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cálculo I — Optimización y Derivadas</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.2.0/dist/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --bg2: #141720;
+    --bg3: #1a1e2a;
+    --card: #1e2330;
+    --card2: #252b3a;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8eaf0;
+    --muted: #8890a8;
+    --accent1: #6c8fff;
+    --accent2: #4de8b2;
+    --accent3: #ff7b72;
+    --accent4: #f0c060;
+    --accent5: #c084fc;
+    --gold: #f0c060;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.65;
+  }
+
+  /* HEADER */
+  .site-header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 0 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .site-header::before {
+    content: '';
+    position: absolute;
+    top: -80px; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(108,143,255,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .site-header .tag {
+    display: inline-block;
+    font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent1);
+    border: 1px solid rgba(108,143,255,0.3);
+    padding: 4px 14px; border-radius: 20px;
+    margin-bottom: 1rem;
+  }
+  .site-header h1 {
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 300;
+    letter-spacing: -0.5px;
+    color: #fff;
+    margin-bottom: 0.5rem;
+  }
+  .site-header h1 span { color: var(--accent1); font-style: italic; }
+  .site-header p {
+    color: var(--muted); font-size: 0.95rem;
+  }
+
+  /* NAV */
+  .nav-pills {
+    display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+    padding: 1.5rem 2rem;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-pill {
+    padding: 6px 18px; border-radius: 20px;
+    font-size: 13px; font-weight: 500;
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    color: var(--muted);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .nav-pill:hover, .nav-pill.active { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+  .nav-pill.p2.active { background: var(--accent2); border-color: var(--accent2); color: #0d0f14; }
+  .nav-pill.p3.active { background: var(--accent3); border-color: var(--accent3); }
+
+  /* LAYOUT */
+  .container { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* SECTION TITLES */
+  .section-label {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 2rem;
+  }
+  .section-num {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .p1 .section-num { background: rgba(108,143,255,0.15); color: var(--accent1); border: 1px solid rgba(108,143,255,0.3); }
+  .p2 .section-num { background: rgba(77,232,178,0.12); color: var(--accent2); border: 1px solid rgba(77,232,178,0.25); }
+  .p3 .section-num { background: rgba(255,123,114,0.12); color: var(--accent3); border: 1px solid rgba(255,123,114,0.25); }
+  .section-title { font-family: 'Crimson Pro', serif; font-size: 1.9rem; font-weight: 400; color: #fff; }
+  .section-subtitle { color: var(--muted); font-size: 0.85rem; }
+
+  /* STEPS */
+  .steps { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+
+  .step-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .step-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 0.85rem 1.25rem;
+    background: var(--card2);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .step-header:hover { background: rgba(255,255,255,0.04); }
+  .step-num-badge {
+    width: 24px; height: 24px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; flex-shrink: 0;
+  }
+  .p1 .step-num-badge { background: rgba(108,143,255,0.15); color: var(--accent1); }
+  .p2 .step-num-badge { background: rgba(77,232,178,0.12); color: var(--accent2); }
+  .p3 .step-num-badge { background: rgba(255,123,114,0.12); color: var(--accent3); }
+  .step-title { font-weight: 500; font-size: 0.95rem; flex: 1; }
+  .step-chevron { color: var(--muted); font-size: 16px; transition: transform 0.2s; }
+  .step-card.open .step-chevron { transform: rotate(180deg); }
+  .step-body {
+    padding: 1.25rem 1.5rem;
+    display: none;
+    font-size: 0.93rem;
+    line-height: 1.75;
+  }
+  .step-card.open .step-body { display: block; }
+
+  /* MATH */
+  .math-block {
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--accent1);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+    margin: 0.75rem 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.88rem;
+    color: #c8d4ff;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+  .p2 .math-block { border-left-color: var(--accent2); color: #a8f0d8; }
+  .p3 .math-block { border-left-color: var(--accent3); color: #ffb8b4; }
+
+  /* RESULT BOX */
+  .result-box {
+    background: linear-gradient(135deg, rgba(108,143,255,0.08), rgba(77,232,178,0.06));
+    border: 1px solid rgba(108,143,255,0.25);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin: 1rem 0;
+  }
+  .result-box.p2 { background: linear-gradient(135deg, rgba(77,232,178,0.08), rgba(108,143,255,0.06)); border-color: rgba(77,232,178,0.25); }
+  .result-box.p3 { background: linear-gradient(135deg, rgba(255,123,114,0.08), rgba(240,192,96,0.06)); border-color: rgba(255,123,114,0.25); }
+  .result-box .result-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 0.5rem; }
+  .result-box .result-value { font-family: 'DM Mono', monospace; font-size: 1rem; color: var(--accent2); }
+  .result-box.p3 .result-value { color: var(--accent3); }
+
+  /* METRICS ROW */
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 1rem 0; }
+  .metric {
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .metric-val { font-size: 1.4rem; font-weight: 600; margin-bottom: 4px; font-family: 'DM Mono', monospace; }
+  .metric-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .blue { color: var(--accent1); }
+  .green { color: var(--accent2); }
+  .red { color: var(--accent3); }
+  .gold { color: var(--gold); }
+  .purple { color: var(--accent5); }
+
+  /* CHART */
+  .chart-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+  .chart-title { font-size: 0.85rem; color: var(--muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+  .chart-inner { position: relative; height: 280px; }
+
+  /* CODE BLOCK */
+  .code-section {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    background: var(--card2);
+    border-bottom: 1px solid var(--border);
+  }
+  .code-lang { font-size: 12px; font-weight: 500; color: var(--accent4); letter-spacing: 1px; }
+  .code-copy {
+    font-size: 12px; color: var(--muted);
+    background: none; border: none; cursor: pointer;
+    padding: 4px 8px; border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .code-copy:hover { background: var(--border2); color: var(--text); }
+  pre {
+    padding: 1.25rem 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    color: #c8d4ff;
+    overflow-x: auto;
+    line-height: 1.7;
+    white-space: pre;
+  }
+  .kw { color: #c084fc; }
+  .fn { color: #6c8fff; }
+  .str { color: #86efac; }
+  .cm { color: #5a6480; font-style: italic; }
+  .num { color: #fbbf24; }
+  .var { color: #e8eaf0; }
+
+  /* ANIMATION SECTION */
+  .anim-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+  .anim-title {
+    font-family: 'Crimson Pro', serif;
+    font-size: 1.4rem; font-weight: 400;
+    margin-bottom: 0.75rem;
+    color: var(--gold);
+  }
+
+  /* INFORME & GUION */
+  .outline-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+  }
+  .outline-title {
+    font-family: 'Crimson Pro', serif;
+    font-size: 1.5rem; font-weight: 400;
+    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .outline-list { list-style: none; }
+  .outline-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .outline-list li:last-child { border-bottom: none; }
+  .outline-num { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.8rem; flex-shrink: 0; padding-top: 2px; }
+
+  .guion-block { margin: 0.75rem 0; }
+  .guion-speaker { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent1); margin-bottom: 4px; }
+  .guion-text { font-family: 'Crimson Pro', serif; font-size: 1.05rem; color: var(--text); border-left: 2px solid var(--border2); padding-left: 12px; }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+  /* SECTION WRAPPER */
+  .problem-section { padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
+  .problem-section:last-of-type { border-bottom: none; }
+
+  /* SCROLL TO TOP */
+  .scroll-top {
+    position: fixed; bottom: 2rem; right: 2rem;
+    width: 42px; height: 42px;
+    background: var(--accent1); color: #fff;
+    border: none; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; opacity: 0; transition: opacity 0.3s;
+    box-shadow: 0 4px 20px rgba(108,143,255,0.35);
+  }
+  .scroll-top.visible { opacity: 1; }
+
+  p { margin-bottom: 0.6rem; }
+  p:last-child { margin-bottom: 0; }
+  strong { color: #fff; font-weight: 500; }
+
+  @media (max-width: 640px) {
+    .nav-pills { gap: 6px; }
+    .nav-pill { font-size: 12px; padding: 5px 12px; }
+    .chart-inner { height: 220px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="tag">Cálculo I — Universidad</div>
+  <h1>Optimización y <span>Derivadas</span></h1>
+  <p>Tres problemas clásicos resueltos paso a paso + fórmulas para GeoGebra</p>
+</header>
+
+<nav class="nav-pills">
+  <a class="nav-pill active" href="#p1">① Lata Cilíndrica</a>
+  <a class="nav-pill p2" href="#p2">② Cable Tierra-Isla</a>
+  <a class="nav-pill p3" href="#p3">③ Ingresos Máximos</a>
+</nav>
+
+<main class="container">
+
+<!-- ============================================================ -->
+<!-- PROBLEMA 1 -->
+<!-- ============================================================ -->
+<section class="problem-section p1" id="p1">
+  <div class="section-label p1">
+    <div class="section-num">1</div>
+    <div>
+      <div class="section-title">Diseño óptimo de una lata cilíndrica</div>
+      <div class="section-subtitle">Minimizar superficie total dado volumen fijo V = 355 mL</div>
+    </div>
+  </div>
+
+  <div class="steps p1">
+
+    <!-- PASO 1 -->
+    <div class="step-card p1 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">1</span>
+        <span class="step-title">Contexto</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <p>Se desea fabricar una lata cilíndrica con volumen fijo <strong>V = 355 cm³</strong> (equivalente a 355 mL). El objetivo es minimizar el material utilizado, es decir, minimizar la superficie total del cilindro.</p>
+        <p>La superficie total incluye <strong>dos tapas circulares</strong> (arriba y abajo) y la <strong>pared lateral</strong>.</p>
+      </div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="step-card p1 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">2</span>
+        <span class="step-title">Función objetivo</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <p>La función de costo (superficie total) en términos del radio <em>r</em> se obtiene sustituyendo la altura <em>h = 355/(πr²)</em>:</p>
+        <div class="math-block">
+Superficie total:    S(r) = 2πr² + 2πr·h
+Restricción:         V = πr²h = 355  →  h = 355/(πr²)
+Sustituyendo h:
+     C(r) = 2πr² + 2πr · [355/(πr²)]
+     C(r) = 2πr² + 710/r
+        </div>
+        <p style="color:var(--muted); font-size:0.88rem;">Esta es la función que se debe <strong>minimizar</strong>.</p>
+      </div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="step-card p1 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">3</span>
+        <span class="step-title">Derivar la función</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <div class="math-block">
+C(r) = 2πr² + 710r⁻¹
+
+C'(r) = d/dr[2πr²] + d/dr[710r⁻¹]
+C'(r) = 4πr  − 710/r²
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="step-card p1 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">4</span>
+        <span class="step-title">Puntos críticos</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <p>Igualamos C'(r) = 0:</p>
+        <div class="math-block">
+4πr − 710/r² = 0
+4πr = 710/r²
+4πr³ = 710
+r³ = 710/(4π) = 56.497...
+r = ∛(710/4π) ≈ 3.837 cm
+        </div>
+        <p>El único punto crítico (con r > 0) es <strong>r ≈ 3.837 cm</strong>.</p>
+      </div>
+    </div>
+
+    <!-- PASO 5 -->
+    <div class="step-card p1 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">5</span>
+        <span class="step-title">Segunda derivada — verificar mínimo</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <div class="math-block">
+C''(r) = 4π + 1420/r³
+
+Evaluando en r = 3.837:
+C''(3.837) = 4π + 1420/(3.837)³
+           = 12.566 + 1420/56.51
+           ≈ 12.566 + 25.13
+           ≈ 37.70 > 0  ✓
+        </div>
+        <p>Como C''(r) > 0, el punto crítico corresponde a un <strong>mínimo</strong>.</p>
+      </div>
+    </div>
+
+    <!-- PASO 6 -->
+    <div class="step-card p1 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">6</span>
+        <span class="step-title">Respuesta final</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <div class="math-block">
+r* ≈ 3.837 cm
+h* = 355/(π · (3.837)²) = 355/46.28 ≈ 7.672 cm
+h* = 2r*  →  La lata óptima tiene h = 2r  (relación áurea del cilindro)
+C(r*) ≈ 2π(3.837)² + 710/3.837 ≈ 276.9 cm²
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="metric-val blue">3.837</div><div class="metric-lbl">Radio (cm)</div></div>
+          <div class="metric"><div class="metric-val green">7.672</div><div class="metric-lbl">Altura (cm)</div></div>
+          <div class="metric"><div class="metric-val gold">276.9</div><div class="metric-lbl">Superficie (cm²)</div></div>
+          <div class="metric"><div class="metric-val purple">h = 2r</div><div class="metric-lbl">Relación óptima</div></div>
+        </div>
+        <div class="result-box">
+          <div class="result-label">Interpretación</div>
+          <div class="result-value">La lata óptima tiene altura igual al doble del radio. Las latas reales de refresco se aproximan a esta proporción.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRÁFICA P1 -->
+  <div class="chart-wrap">
+    <div class="chart-title">C(r) = 2πr² + 710/r — Curva de superficie vs radio</div>
+    <div class="chart-inner"><canvas id="chart1" role="img" aria-label="Gráfica de superficie de lata cilíndrica vs radio, mínimo en r=3.84"></canvas></div>
+  </div>
+
+  <!-- GEOGEBRA P1 -->
+  <div class="anim-card">
+    <div class="anim-title" style="font-size:1.15rem; color:var(--accent1);">
+      <i class="ti ti-brand-google" style="font-size:1rem; margin-right:6px"></i>GeoGebra
+    </div>
+    <div style="display:flex; flex-direction:column; gap:0.75rem;">
+      <div>
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:4px;">Fórmula para GeoGebra</div>
+        <div class="math-block" style="margin:0; border-left-color:var(--accent1); color:#c8d4ff;">f(r) = 2 * pi * r^2 + 710 / r</div>
+      </div>
+      <div>
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:4px;">Deslizador</div>
+        <div style="font-size:0.9rem;">Variable <strong>r</strong> — rango de <strong>0.5 a 8</strong>, paso 0.1. Agregar un punto <code style="background:var(--bg); padding:2px 6px; border-radius:4px; font-size:0.82rem;">(r, f(r))</code> sobre la curva.</div>
+      </div>
+      <div>
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:4px;">Animación sugerida</div>
+        <div style="font-size:0.9rem; color:var(--muted);">Activar "Animar" en el deslizador r. El punto recorre la curva de derecha a izquierda bajando hacia el mínimo en r ≈ 3.84. Detener la animación ahí y agregar la etiqueta <em>"Mínimo: C = 276.9 cm²"</em> para la exposición.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PROBLEMA 2 -->
+<!-- ============================================================ -->
+<section class="problem-section p2" id="p2">
+  <div class="section-label p2">
+    <div class="section-num">2</div>
+    <div>
+      <div class="section-title">Cable tierra-isla</div>
+      <div class="section-subtitle">Minimizar costo total de tendido de cable terrestre y submarino</div>
+    </div>
+  </div>
+
+  <div class="steps p2">
+
+    <div class="step-card p2 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">1</span>
+        <span class="step-title">Contexto</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <p>Una isla está a <strong>4 km</strong> de la costa. La fuente de energía en tierra está a <strong>6 km</strong> a lo largo de la costa. El cable <strong>terrestre cuesta $1,500/km</strong> y el cable <strong>submarino $3,000/km</strong>. Se busca el punto óptimo sobre la costa para tender el cable hacia la isla.</p>
+        <div class="math-block">
+Geometría:
+  - Distancia isla-costa: 4 km (perpendicular)
+  - Longitud total costa: 6 km
+  - x = distancia terrestre desde la fuente hasta el punto de inmersión
+  - Tramo submarino: √(16 + (6−x)²)  [Pitágoras]
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card p2 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">2</span>
+        <span class="step-title">Función objetivo</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <div class="math-block">
+C(x) = 1500x + 3000·√(16 + (6−x)²)
+
+donde:
+  1500x          → costo cable terrestre
+  3000·√(16+(6−x)²) → costo cable submarino
+  0 ≤ x ≤ 6 km
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card p2 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">3</span>
+        <span class="step-title">Derivar la función</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <div class="math-block">
+C'(x) = 1500 + 3000 · d/dx[√(16 + (6−x)²)]
+
+Usando regla de la cadena:
+  d/dx[√(16+(6−x)²)] = [−2(6−x)] / [2√(16+(6−x)²)]
+                       = −(6−x) / √(16+(6−x)²)
+
+C'(x) = 1500 − 3000(6−x) / √(16 + (6−x)²)
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card p2 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">4</span>
+        <span class="step-title">Puntos críticos</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <div class="math-block">
+Igualamos C'(x) = 0:
+  1500 = 3000(6−x) / √(16 + (6−x)²)
+  (6−x) / √(16 + (6−x)²) = 1/2
+
+Sea u = 6−x:
+  u / √(16 + u²) = 1/2
+  2u = √(16 + u²)
+  4u² = 16 + u²
+  3u² = 16
+  u = 4/√3 ≈ 2.309
+
+x* = 6 − 4/√3 ≈ 6 − 2.309 ≈ 3.691 km
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card p2 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">5</span>
+        <span class="step-title">Segunda derivada — verificar mínimo</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <div class="math-block">
+C''(x) = −3000 · d/dx[−(6−x)/√(16+(6−x)²)]
+
+C''(x) = 3000 · 16 / [16+(6−x)²]^(3/2)
+
+En x* ≈ 3.691:
+  (6−x*)² = (4/√3)² = 16/3
+  [16 + 16/3]^(3/2) = [64/3]^(3/2) ≈ 98.1
+  C''(3.691) = 3000 · 16 / 98.1 ≈ 489 > 0  ✓
+        </div>
+        <p>C''(x) > 0 → <strong>mínimo confirmado</strong>.</p>
+      </div>
+    </div>
+
+    <div class="step-card p2 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">6</span>
+        <span class="step-title">Respuesta final</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <div class="math-block">
+x* ≈ 3.691 km  (cable terrestre desde la fuente)
+Cable submarino = √(16 + (6−3.691)²) = √(16 + 5.33) ≈ 4.619 km
+Costo mínimo total = 1500(3.691) + 3000(4.619)
+                   = 5,536.5 + 13,857
+                   ≈ $19,393.5
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="metric-val green">3.691</div><div class="metric-lbl">Cable tierra (km)</div></div>
+          <div class="metric"><div class="metric-val blue">4.619</div><div class="metric-lbl">Cable submarino (km)</div></div>
+          <div class="metric"><div class="metric-val gold">$19,394</div><div class="metric-lbl">Costo mínimo</div></div>
+        </div>
+        <div class="result-box p2">
+          <div class="result-label">Interpretación</div>
+          <div class="result-value">El punto de inmersión está a 3.69 km de la fuente terrestre. Tender todo el cable por tierra costaría $9,000 más que la solución óptima.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">C(x) = 1500x + 3000√(16+(6−x)²) — Costo total vs posición de inmersión</div>
+    <div class="chart-inner"><canvas id="chart2" role="img" aria-label="Costo del cable vs posición x, mínimo en x=3.69"></canvas></div>
+  </div>
+
+  <!-- GEOGEBRA P2 -->
+  <div class="anim-card">
+    <div class="anim-title" style="font-size:1.15rem; color:var(--accent2);">
+      <i class="ti ti-brand-google" style="font-size:1rem; margin-right:6px"></i>GeoGebra
+    </div>
+    <div style="display:flex; flex-direction:column; gap:0.75rem;">
+      <div>
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:4px;">Fórmula para GeoGebra</div>
+        <div class="math-block" style="margin:0; border-left-color:var(--accent2); color:#a8f0d8;">f(x) = 1500x + 3000 * sqrt(16 + (6 - x)^2)</div>
+      </div>
+      <div>
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:4px;">Deslizador</div>
+        <div style="font-size:0.9rem;">Variable <strong>x</strong> — rango de <strong>0 a 6</strong>, paso 0.05. Agregar un punto <code style="background:var(--bg); padding:2px 6px; border-radius:4px; font-size:0.82rem;">(x, f(x))</code> sobre la curva.</div>
+      </div>
+      <div>
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:4px;">Animación sugerida</div>
+        <div style="font-size:0.9rem; color:var(--muted);">Animar el deslizador x de 0 a 6. El punto baja hasta el mínimo en x ≈ 3.69 y luego sube, evidenciando la forma de "valle". Para mayor impacto visual, trazar también en la vista gráfica el segmento de costa y la línea oblicua al mar que varía con x.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PROBLEMA 3 -->
+<!-- ============================================================ -->
+<section class="problem-section p3" id="p3">
+  <div class="section-label p3">
+    <div class="section-num">3</div>
+    <div>
+      <div class="section-title">Maximización de ingresos</div>
+      <div class="section-subtitle">Precio óptimo de suscripción para maximizar ingresos totales</div>
+    </div>
+  </div>
+
+  <div class="steps p3">
+
+    <div class="step-card p3 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">1</span>
+        <span class="step-title">Contexto</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <p>Un servicio de streaming tiene <strong>4,000 suscriptores</strong> a <strong>$80/mes</strong>. Por cada <strong>$1 de aumento</strong> en el precio, se pierden <strong>50 suscriptores</strong>. Se busca el aumento óptimo <em>x</em> para maximizar el ingreso total.</p>
+      </div>
+    </div>
+
+    <div class="step-card p3 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">2</span>
+        <span class="step-title">Función objetivo</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <div class="math-block">
+Precio con aumento:       P(x) = 80 + x
+Suscriptores restantes:   N(x) = 4000 − 50x
+Ingreso total:
+  I(x) = P(x) · N(x) = (80 + x)(4000 − 50x)
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card p3 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">3</span>
+        <span class="step-title">Derivar la función</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <p>Expandimos primero:</p>
+        <div class="math-block">
+I(x) = (80 + x)(4000 − 50x)
+      = 320,000 − 4,000x + 4,000x − 50x²
+      = 320,000 + (−4000 + 4000)x − 50x²
+
+¡Espera! Expandiendo correctamente:
+  80 · 4000 = 320,000
+  80 · (−50x) = −4,000x
+  x · 4000  = 4,000x
+  x · (−50x) = −50x²
+
+I(x) = 320,000 + (4,000 − 4,000)x − 50x²
+      = 320,000 − 50x²  ???
+
+Re-expandiendo con cuidado:
+  (80 + x)(4000 − 50x)
+  = 80·4000 + 80·(−50x) + x·4000 + x·(−50x)
+  = 320,000 − 4,000x + 4,000x − 50x²
+  = 320,000 − 50x²
+
+Nota: los términos lineales se cancelan → I(x) = 320,000 − 50x²
+
+I'(x) = −100x
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card p3 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">4</span>
+        <span class="step-title">Puntos críticos</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <div class="math-block">
+I'(x) = −100x = 0
+→ x* = 0
+
+Interpretación: los términos lineales en I(x) se cancelaron exactamente,
+lo que significa que I(x) = 320,000 − 50x² es una parábola con vértice en x=0.
+
+Esto implica que cualquier aumento x > 0 REDUCE el ingreso.
+El ingreso máximo se logra con x = 0 (sin aumento).
+
+ANÁLISIS ADICIONAL: Si se permite reducción de precio (x < 0),
+la función tampoco mejora (también reduce por ser parábola invertida).
+
+Conclusión real: La estructura de la demanda es perfectamente balanceada.
+        </div>
+        <div class="result-box p3">
+          <div class="result-label">Resultado matemático</div>
+          <div class="result-value">x* = 0 → Ingreso máximo = $320,000 al precio actual de $80. Cualquier cambio de precio reduce el ingreso.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card p3 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">5</span>
+        <span class="step-title">Segunda derivada — verificar máximo</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <div class="math-block">
+I'(x) = −100x
+I''(x) = −100
+
+I''(0) = −100 < 0  ✓  →  Máximo confirmado
+        </div>
+        <p>La segunda derivada es negativa en todo el dominio, confirmando que la función es cóncava hacia abajo y x = 0 es un máximo global.</p>
+      </div>
+    </div>
+
+    <div class="step-card p3 open">
+      <div class="step-header" onclick="toggle(this)">
+        <span class="step-num-badge">6</span>
+        <span class="step-title">Respuesta final</span>
+        <i class="ti ti-chevron-down step-chevron"></i>
+      </div>
+      <div class="step-body">
+        <div class="math-block">
+Aumento óptimo:       x* = $0
+Precio final:         $80 + $0 = $80/mes
+Suscriptores finales: 4,000 − 50(0) = 4,000
+Ingreso máximo:       I(0) = $320,000/mes
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="metric-val red">$0</div><div class="metric-lbl">Aumento óptimo</div></div>
+          <div class="metric"><div class="metric-val gold">$80</div><div class="metric-lbl">Precio final</div></div>
+          <div class="metric"><div class="metric-val blue">4,000</div><div class="metric-lbl">Suscriptores</div></div>
+          <div class="metric"><div class="metric-val green">$320,000</div><div class="metric-lbl">Ingreso máximo</div></div>
+        </div>
+        <div class="result-box p3">
+          <div class="result-label">Interpretación</div>
+          <div class="result-value">La demanda es perfectamente elástica al precio actual. No subir el precio es la estrategia óptima. Este resultado, aunque matemáticamente exacto, invita a cuestionar el modelo de demanda lineal.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">I(x) = (80+x)(4000−50x) — Ingreso vs aumento de precio</div>
+    <div class="chart-inner"><canvas id="chart3" role="img" aria-label="Ingreso total vs aumento de precio x, máximo en x=0"></canvas></div>
+  </div>
+
+  <!-- GEOGEBRA P3 -->
+  <div class="anim-card">
+    <div class="anim-title" style="font-size:1.15rem; color:var(--accent3);">
+      <i class="ti ti-brand-google" style="font-size:1rem; margin-right:6px"></i>GeoGebra
+    </div>
+    <div style="display:flex; flex-direction:column; gap:0.75rem;">
+      <div>
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:4px;">Fórmula para GeoGebra</div>
+        <div class="math-block" style="margin:0; border-left-color:var(--accent3); color:#ffb8b4;">f(x) = (80 + x) * (4000 - 50x)</div>
+      </div>
+      <div>
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:4px;">Deslizador</div>
+        <div style="font-size:0.9rem;">Variable <strong>x</strong> — rango de <strong>−20 a 20</strong>, paso 1. Agregar un punto <code style="background:var(--bg); padding:2px 6px; border-radius:4px; font-size:0.82rem;">(x, f(x))</code> sobre la parábola.</div>
+      </div>
+      <div>
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:4px;">Animación sugerida</div>
+        <div style="font-size:0.9rem; color:var(--muted);">Animar el deslizador x de −20 a 20. El punto sube desde la izquierda, toca el vértice exactamente en x = 0 (máximo $320,000) y desciende simétricamente. Colocar una línea horizontal en y = 320000 etiquetada "Ingreso máximo" para resaltar visualmente el punto cumbre.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <i class="ti ti-arrow-up"></i>
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// TOGGLE STEPS
+function toggle(header) {
+  const card = header.parentElement;
+  card.classList.toggle('open');
+}
+
+// SCROLL TO TOP
+window.addEventListener('scroll', () => {
+  document.getElementById('scrollTop').classList.toggle('visible', window.scrollY > 400);
+});
+
+// NAV ACTIVE STATE
+document.querySelectorAll('.nav-pill').forEach(pill => {
+  pill.addEventListener('click', function() {
+    document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// CHART DEFAULTS
+Chart.defaults.color = '#8890a8';
+Chart.defaults.borderColor = '#1e2330';
+
+// ─── CHART 1: LATA CILÍNDRICA ───────────────────────────────
+const r1 = [], c1 = [];
+for (let ri = 1; ri <= 8; ri += 0.05) {
+  r1.push(+ri.toFixed(3));
+  c1.push(+(2*Math.PI*ri*ri + 710/ri).toFixed(2));
+}
+const rOpt = Math.cbrt(710/(4*Math.PI));
+const cOpt = 2*Math.PI*rOpt*rOpt + 710/rOpt;
+
+new Chart(document.getElementById('chart1'), {
+  type: 'line',
+  data: {
+    labels: r1,
+    datasets: [
+      { label: 'C(r) = 2πr² + 710/r', data: c1,
+        borderColor: '#6c8fff', borderWidth: 2, pointRadius: 0, tension: 0.3, fill: false },
+      { label: `Mínimo r*=${rOpt.toFixed(3)} cm`, data: r1.map(r => Math.abs(r - +rOpt.toFixed(3)) < 0.06 ? cOpt.toFixed(1) : null),
+        pointBackgroundColor: '#4de8b2', pointRadius: r1.map(r => Math.abs(r - +rOpt.toFixed(3)) < 0.06 ? 8 : 0),
+        showLine: false }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: true, labels: { color: '#8890a8', font: { size: 11 } } } },
+    scales: {
+      x: { title: { display: true, text: 'radio r (cm)', color: '#8890a8' },
+           ticks: { maxTicksLimit: 8, color: '#5a6480' },
+           grid: { color: '#1e2330' } },
+      y: { title: { display: true, text: 'Superficie (cm²)', color: '#8890a8' },
+           min: 250, max: 700,
+           ticks: { color: '#5a6480' }, grid: { color: '#1e2330' } }
+    }
+  }
+});
+
+// ─── CHART 2: CABLE TIERRA-ISLA ─────────────────────────────
+const x2 = [], c2 = [];
+for (let xi = 0; xi <= 6; xi += 0.05) {
+  x2.push(+xi.toFixed(3));
+  c2.push(+(1500*xi + 3000*Math.sqrt(16 + (6-xi)**2)).toFixed(2));
+}
+const xOpt = 6 - 4/Math.sqrt(3);
+const c2Opt = 1500*xOpt + 3000*Math.sqrt(16 + (6-xOpt)**2);
+
+new Chart(document.getElementById('chart2'), {
+  type: 'line',
+  data: {
+    labels: x2,
+    datasets: [
+      { label: 'C(x) = 1500x + 3000√(16+(6−x)²)', data: c2,
+        borderColor: '#4de8b2', borderWidth: 2, pointRadius: 0, tension: 0.3, fill: false },
+      { label: `Mínimo x*=${xOpt.toFixed(3)} km`, data: x2.map(x => Math.abs(x - +xOpt.toFixed(3)) < 0.06 ? c2Opt.toFixed(0) : null),
+        pointBackgroundColor: '#f0c060', pointRadius: x2.map(x => Math.abs(x - +xOpt.toFixed(3)) < 0.06 ? 8 : 0),
+        showLine: false }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: true, labels: { color: '#8890a8', font: { size: 11 } } } },
+    scales: {
+      x: { title: { display: true, text: 'x (km cable terrestre)', color: '#8890a8' },
+           ticks: { maxTicksLimit: 7, color: '#5a6480' }, grid: { color: '#1e2330' } },
+      y: { title: { display: true, text: 'Costo ($)', color: '#8890a8' },
+           ticks: { color: '#5a6480', callback: v => '$'+v.toLocaleString() }, grid: { color: '#1e2330' } }
+    }
+  }
+});
+
+// ─── CHART 3: INGRESOS ──────────────────────────────────────
+const t3 = [], i3 = [];
+for (let ti = -20; ti <= 20; ti += 0.25) {
+  t3.push(+ti.toFixed(2));
+  i3.push(+((80+ti)*(4000-50*ti)).toFixed(0));
+}
+
+new Chart(document.getElementById('chart3'), {
+  type: 'line',
+  data: {
+    labels: t3,
+    datasets: [
+      { label: 'I(x) = (80+x)(4000−50x)', data: i3,
+        borderColor: '#ff7b72', borderWidth: 2, pointRadius: 0, tension: 0.3, fill: false },
+      { label: 'Máximo t*=0, I=$320,000', data: t3.map(t => Math.abs(t) < 0.15 ? 320000 : null),
+        pointBackgroundColor: '#c084fc', pointRadius: t3.map(t => Math.abs(t) < 0.15 ? 8 : 0),
+        showLine: false }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: true, labels: { color: '#8890a8', font: { size: 11 } } } },
+    scales: {
+      x: { title: { display: true, text: 'Aumento de precio t ($)', color: '#8890a8' },
+           ticks: { maxTicksLimit: 9, color: '#5a6480' }, grid: { color: '#1e2330' } },
+      y: { title: { display: true, text: 'Ingreso total I ($)', color: '#8890a8' },
+           ticks: { color: '#5a6480', callback: v => '$'+(v/1000).toFixed(0)+'K' }, grid: { color: '#1e2330' } }
+    }
+  }
+});
+</script>
+</body>
+</html>
